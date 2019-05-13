@@ -4,7 +4,7 @@ MAINTAINER Jamie Curnow <jc@jc21.com>
 LABEL maintainer="Jamie Curnow <jc@jc21.com>"
 
 RUN apt-get update \
-  && apt-get install --no-install-recommends --no-install-suggests -y curl gnupg openssl dirmngr apt-transport-https wget ca-certificates git \
+  && apt-get install --no-install-recommends --no-install-suggests -y curl gnupg dirmngr apt-transport-https wget ca-certificates git \
   && apt-key adv --fetch-keys https://dl.yarnpkg.com/debian/pubkey.gpg \
   && echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list \
   && apt-get update \
@@ -17,6 +17,21 @@ RUN apt-get update \
 
 # NodeJS
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - \
-    && apt-get install -y nodejs \
+    && apt-get install -y --no-install-recommends nodejs \
     && apt-get clean \
     && npm install -g gulp
+
+# OpenSSL 1.1.1 w/ TLSv1.3 support
+RUN apt-get install -y --no-install-recommends make gcc
+RUN wget https://www.openssl.org/source/openssl-1.1.1b.tar.gz && \
+    tar -zxf openssl-1.1.1b.tar.gz && cd openssl-1.1.1b && \
+    ./config && \
+    make install && \
+    ldconfig && \
+    
+RUN rm -rf /openssl-1.1.1b && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get remove --purge make gcc -y && \
+    apt-get autoremove -y && \
+    rm -rf /tmp && \
+    openssl version
